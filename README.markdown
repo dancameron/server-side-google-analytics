@@ -1,6 +1,10 @@
 Description
 ===========
 
+Server Side Google Analytics (SSGA) is a simple PHP 5 class, which allows to track server-side events and data within Google Analytics.
+
+Drop-in solution for WordPress plugins (uses the WP HTTP API if available).
+
 Usage
 -----
 
@@ -32,3 +36,8 @@ Set an event (based on http://code.google.com/apis/analytics/docs/tracking/event
 
 	$ga->set_event('Category', 'Action', 'Label', 'Value');
 	$ga->create_event();
+
+Notes
+-----
+
+Forked from <http://code.google.com/p/serversidegoogleanalytics/>
