@@ -18,7 +18,7 @@ class ssga {
     private $default_type = 'event';
 
     private $beacon_url = 'http://www.google-analytics.com/__utm.gif'; // Beacon
-    private $utmwv = '4.3'; // Analytics version
+    private $utmwv = '5.3.2d'; // Analytics version
     private $utmn; // Random number
     private $utmhn; // Host name
     private $utmcs; // Charset
@@ -28,7 +28,7 @@ class ssga {
     private $utmp; // Pageview
     private $utmac; // Google Analytics account
     private $utmt; // Analytics type (event)
-    private $utmcc; //Cookie related variables
+    private $utmcc; // Cookie related variables
 
     private $event_category; // Event category
     private $event_action; // Event action
@@ -175,7 +175,7 @@ class ssga {
             'utmhid' => $this->get_uid(),
             'utmp' => $this->get_pageview(),
             'utmac' => $this->get_account_id(),
-            'utmcc' => $this->get_cookie_vars()
+            'utmcc' => urlencode($this->get_cookie_vars())
         );
         return $this->remote( $this->beacon_url, $parameters );
     }
@@ -190,11 +190,12 @@ class ssga {
             'utme' => $this->get_event_string(),
             'utmcs' => $this->get_charset(),
             'utmul' => $this->get_lang(),
-            // 'utmdt' => $this->get_page_title(),
+            'utmdt' => urlencode( $this->get_page_title() ),
             'utmhid' => $this->get_uid(),
-            // 'utmp' => $this->get_pageview(),
+            'utmp' => $this->get_pageview(),
             'utmac' => $this->get_account_id(),
-            'utmcc' => $this->get_cookie_vars()
+            'utmcc' => urlencode($this->get_cookie_vars())
+
         );
         return $this->remote( $this->beacon_url, $parameters );
     }
@@ -202,13 +203,13 @@ class ssga {
     private function remote( $url, $parameters = array() ) {
 
         if ( function_exists( 'add_query_arg' ) && function_exists( 'wp_remote_head' ) ) { // Check if this is being used with WordPress, if so use it's excellent HTTP class
-           
+            
             $gif_url = add_query_arg( $parameters, $url );
             $response = wp_remote_head( $gif_url );
             return $response;
 
         } else {
-            
+
             $gif_url = $url . '?' . http_build_query( $parameters );
             // is cURL installed yet?
             if ( !function_exists( 'curl_init' ) ) {
@@ -222,7 +223,7 @@ class ssga {
             curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
             curl_setopt( $ch, CURLOPT_TIMEOUT, 20 );
 
-        
+
             $output = curl_exec( $ch );
 
             // Close the cURL resource, and free system resources
