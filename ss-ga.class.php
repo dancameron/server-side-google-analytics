@@ -123,7 +123,7 @@ class ssga {
 	}
 
 	private function get_random_number() {
-		return time().rand( 100000000, 999999999 );
+		return rand( 100000000, 999999999 );
 	}
 
 	public function set_charset( $charset= '' ) {
