@@ -2,236 +2,343 @@
 /**
  * Simple Server Side Analytics
  *
- * Server Side Analytics is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * any later version.
- *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html.
- *
- * @copyright  Copyright (c) 2009 elements.at New Media Solutions GmbH (http://www.elements.at)
- * @license    http://www.gnu.org/copyleft/gpl.html  GPL
  */
 
 class ssga {
-	private $default_type = 'event';
+	const GA_URL = 'http://www.google-analytics.com/__utm.gif';
 
-	private $beacon_url = 'http://www.google-analytics.com/__utm.gif'; // Beacon
-	private $utmwv = '5.3.2d'; // Analytics version
-	private $utmn; // Random number
-	private $utmhn; // Host name
-	private $utmcs; // Charset
-	private $utmul; // Language
-	private $utmdt; // Page title
-	private $utmhid; // Random number (unique for all session requests)
-	private $utmp; // Pageview
-	private $utmac; // Google Analytics account
-	private $utmt; // Analytics type (event)
-	private $utmcc; // Cookie related variables
+	private $data = array(
+		'utmac' => null,
+		'utmcc' => null,
+		'utmcn' => null,
+		'utmcr' => null,
+		'utmcs' => null,
+		'utmdt' => '-',
+		'utmfl' => '-',
+		'utme' => null,
+		'utmhn' => null,
+		'utmipc' => null,
+		'utmipn' => null,
+		'utmipr' => null,
+		'utmiqt' => null,
+		'utmiva' => null,
+		'utmje' => 0,
+		'utmn' => null,
+		'utmp' => null,
+		'utmr' => null,
+		'utmsc' => '-',
+		'utmsr' => '-',
+		'utmt' => null,
+		'utmtci' => null,
+		'utmtco' => null,
+		'utmtid' => null,
+		'utmtrg' => null,
+		'utmtsp' => null,
+		'utmtst' => null,
+		'utmtto' => null,
+		'utmttx' => null,
+		'utmul' => '-',
+		'utmwv' => '5.2.5' );
 
-	private $event_category; // Event category
-	private $event_action; // Event action
-	private $event_label; // Event label
-	private $event_value; // Event value
-
-	private $event_string; // Internal structure of the complete event string
+	private $tracking;
 
 
-	public function __construct() {
-		$this->set_utmhid();
-		$this->set_charset();
-		$this->set_cookie_vars();
+	public function __construct( $UA = null, $domain = null ) {
+		$this->data['utmac'] = $UA;
+		$this->data['utmhn'] = isset( $domain ) ? $domain : $_SERVER['SERVER_NAME'];
+		$this->data['utmp'] = $_SERVER['PHP_SELF'];
+		$this->data['utmn'] = rand( 1000000000, 9999999999 );
+		$this->data['utmr'] = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		$this->data['utmcc'] = $this->create_cookie();
 	}
 
-	private function set_cookie_vars() {
-		$cookie = rand( 10000000, 99999999 ) . time();
+	/**
+	 * Create the GA callback url, aka the gif
+	 * 
+	 * @return string
+	 */
+	public function create_gif() {
+		$data = array();
+		foreach ( $this->data as $key => $item ) {
+			if ( $item !== null ) {
+				$data[$key] = $item;
+			}
+		}
+		return $this->tracking = self::GA_URL . '?' . http_build_query( $data );
+	}
+
+	/**
+	 * Send tracking code/gif to GB
+	 * 
+	 * @return 
+	 */
+	public function send() {
+		if ( !isset( $this->tracking ) )
+			$this->create_gif();
+		
+		// prp($this->create_gif());
+		return $this->remote_call();
+	}
+
+	/**
+	 * Use WP's HTTP class or CURL or fopen 
+	 * @return array|null 
+	 */
+	private function remote_call() {
+
+		if ( function_exists( 'wp_remote_head' ) ) { // Check if this is being used with WordPress, if so use it's excellent HTTP class
+
+			$response = wp_remote_head( $this->tracking );
+			// prp($response);
+			return $response;
+
+		} elseif ( function_exists( 'curl_init' ) ) {
+			$ch = curl_init();
+			curl_setopt( $ch, CURLOPT_URL, $this->tracking );
+			curl_setopt( $ch, CURLOPT_HEADER, false );
+			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
+			curl_exec( $ch );
+			curl_close( $ch );
+		} else {
+			$handle = fopen( $this->tracking, "r" );
+			fclose( $handle );
+		}
+		return;
+	}
+
+	/**
+	 * Reset Defaults
+	 * @return null
+	 */
+	public function reset() {
+		$data = array(
+			'utmac' => null,
+			'utmcc' => $this->create_cookie(),
+			'utmcn' => null,
+			'utmcr' => null,
+			'utmcs' => null,
+			'utmdt' => '-',
+			'utmfl' => '-',
+			'utme' => null,
+			'utmipc' => null,
+			'utmipn' => null,
+			'utmipr' => null,
+			'utmiqt' => null,
+			'utmiva' => null,
+			'utmje' => '0',
+			'utmn' => rand( 1000000000, 9999999999 ),
+			'utmp' => $_SERVER['PHP_SELF'],
+			'utmr' => isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '',
+			'utmsc' => '-',
+			'utmsr' => '-',
+			'utmt' => null,
+			'utme' => null,
+			'utmtci' => null,
+			'utmtco' => null,
+			'utmtid' => null,
+			'utmtrg' => null,
+			'utmtsp' => null,
+			'utmtst' => null,
+			'utmtto' => null,
+			'utmttx' => null,
+			'utmul' => '-',
+			'utmwv' => '5.2.5' );
+		return $this->data = $data;
+	}
+
+	/**
+	 * Create unique cookie
+	 * @return string 
+	 */
+	private function create_cookie() {
+		$rand_id = rand( 10000000, 99999999 );
 		$random = rand( 1000000000, 2147483647 );
-		$today = time();
-		$this->utmcc = '__utma=1.'.$cookie.'.'.$random.'.'.$today.'.'.$today.'.15;+__utmz=1.' . $today . '.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none);';
+		$var = '-';
+		$time = time();
+		$cookie = '';
+		$cookie .= '__utma=' . $rand_id . '.' . $random . '.' . $time . '.' . $time . '.' . $time . '.2;+';
+		$cookie .= '__utmb=' . $rand_id . ';+';
+		$cookie .= '__utmc=' . $rand_id . ';+';
+		$cookie .= '__utmz=' . $rand_id . '.' . $time . '.2.2.utmccn=(direct)|utmcsr=(direct)|utmcmd=(none);+';
+		$cookie .= '__utmv=' . $rand_id . '.' . $var . ';';
+		return $cookie;
 	}
 
-	private function get_cookie_vars() {
-		return $this->utmcc;
+	////////////
+	// Params //
+	////////////
+
+
+ 	/////////////
+	// Product //
+ 	/////////////
+
+	public function set_product_code( $var = null ) {
+		return $this->data['utmipc'] = $var;
 	}
 
-	public function set_event( $category, $action, $label= '', $value= '' ) {
-		$this->event_category = (string) $category;
-		$this->event_action = (string) $action;
-		if ( $label ) $this->event_label = (string) $label;
-		if ( $value ) $this->event_value = (int) intval( $value );
+	public function set_product_name( $var = null ) {
+		return $this->data['utmipn'] = $var;
+	}
 
-		$event_string = '5(' . $this->event_category . '*' . $this->event_action;
+	public function set_unit_price( $var = null ) {
+		return $this->data['utmipr'] = $var;
+	}
+
+	public function set_qty( $var = null ) {
+		return $this->data['utmiqt'] = $var;
+	}
+
+	public function set_variation( $var = null ) {
+		return $this->data['utmiva'] = $var;
+	}
+
+ 	//////////
+	// Misc //
+ 	//////////
+
+
+	public function set_java( $var = null ) {
+		return $this->data['utmje'] = $var;
+	}
+
+
+	public function set_encode_type( $var = null ) {
+		return $this->data['utmcs'] = $var;
+	}
+
+	public function set_flash_version( $var = null ) {
+		return $this->data['utmfl'] = $var;
+	}
+
+
+	public function set_host( $var = null ) {
+		return $this->data['utmhn'] = $var;
+	}
+
+	public function set_screen_depth( $var = null ) {
+		return $this->data['utmsc'] = $var;
+	}
+
+
+	public function set_screen_resolution( $var = null ) {
+		return $this->data['utmsr'] = $var;
+	}
+
+	public function set_lang( $var = null ) {
+		return $this->data['utmul'] = $var;
+	}
+
+	public function set_ga_version( $var = null ) {
+		return $this->data['utmwv'] = isset( $var ) ? $var : $this->data['utmwv'];
+	}
+
+ 	//////////
+	// Page //
+ 	//////////
+
+	public function set_page( $var = null ) {
+		return $this->data['utmp'] = $var;
+	}
+
+
+	public function set_page_title( $var = null ) {
+		return $this->data['utmdt'] = $var;
+	}
+
+
+	public function set_campaign( $var=null ) {
+		return $this->data['utmcn'] = $var;
+	}
+
+
+	public function clone_campaign( $var=null ) {
+		return $this->data['utmcr'] = $var;
+	}
+
+	public function set_referal( $var = null ) {
+		return $this->data['utmr'] = $var;
+	}
+
+ 	////////////
+	// Events //
+ 	////////////
+
+	public function set_event( $category, $action, $label = '', $value = '' ) {
+		$event_category = (string) $category;
+		$event_action = (string) $action;
+		if ( $label ) $event_label = (string) $label;
+		if ( $value ) $event_value = (int) intval( $value );
+		
+		$event_string = '';
+		$event_string .= '5(' . $event_category . '*' . $event_action;
 
 		if ( $label )
-			$event_string .= '*' . $this->event_label . ')';
+			$event_string .= '*' . $event_label . ')';
 		else
 			$event_string .= ')';
 
 		if ( $this->event_value )
-			$event_string .= '(' . $this->event_value . ')';
+			$event_string .= '(' . $event_value . ')';
 
-		$this->event_string = $event_string;
+		$this->data['utmt'] = 'event';
+		return $this->data['utme'] = $event_string;
 	}
 
-	private function get_event_string() {
-		return $this->event_string;
+ 	///////////
+	// Order //
+ 	///////////
+ 	
+	public function set_order_id( $var = null ) {
+		return $this->data['utmtid'] = $var;
 	}
 
-	private function set_type( $type= '' ) {
-		if ( $type )
-			$this->utmt = $type;
-		else
-			$this->utmt = $this->default_type;
+	public function set_billing_city( $var = null ) {
+		return $this->data['utmtci'] = $var;
 	}
 
-	private function get_type() {
-		return $this->utmt;
+	public function set_billing_country( $var = null ) {
+		return $this->data['utmtco'] = $var;
 	}
 
-	public function set_account_id( $account_id ) {
-		$this->utmac = $account_id;
+	public function set_billing_region( $var = null ) {
+		return $this->data['utmtrg'] = $var;
 	}
 
-	private function get_account_id() {
-		return $this->utmac;
+
+	public function set_shipping_cost( $var = null ) {
+		return $this->data['utmtsp'] = $var;
 	}
 
-	public function set_pageview( $page_view= '' ) {
-		$this->utmp = $page_view;
+
+	public function set_affiliate( $var = null ) {
+		return $this->data['utmtst'] = $var;
 	}
 
-	private function get_pageview() {
-		return $this->utmp;
+
+	public function set_total( $var = null ) {
+		return $this->data['utmtto'] = $var;
 	}
 
-	public function set_version( $version= '' ) {
-		if ( $version )
-			$this->utmwv = $version;
+	public function set_taxes( $var = null ) {
+		return $this->data['utmttx'] = $var;
 	}
-
-	private function get_version() {
-		return $this->utmwv;
-	}
-
-	private function get_uid() {
-		return $this->utmhid;
-	}
-
-	private function set_utmhid() {
-		$this->utmhid = mt_rand( 100000000, 999999999 );
-	}
-
-	private function get_random_number() {
-		return rand( 100000000, 999999999 );
-	}
-
-	public function set_charset( $charset= '' ) {
-		if ( $charSet )
-			$this->utmcs = $charset;
-		else
-			$this->utmcs = 'UTF-8';
-	}
-
-	private function get_charset() {
-		return $this->utmcs;
-	}
-
-	public function set_lang( $language= '' ) {
-		if ( $language )
-			$this->utmul = $language;
-		else
-			$this->utmul = 'en-us';
-	}
-
-	public function set_page_title( $page_title= '' ) {
-		$this->utmdt = $page_title;
-	}
-
-	private function get_page_title() {
-		return $this->utmdt;
-	}
-
-	private function get_lang() {
-		return $this->utmul;
-	}
-
-	public function set_host_name( $host_name= '' ) {
-		$this->utmhn = $host_name;
-	}
-
-	private function get_host_name() {
-		return $this->utmhn;
-	}
-
-	public function create_page_view() {
-		$parameters = array(
-			'utmwv' => $this->get_version(),
-			'utmn' => $this->get_random_number(),
-			'utmhn' => $this->get_host_name(),
-			'utmcs' => $this->get_charset(),
-			'utmul' => $this->get_lang(),
-			'utmdt' => urlencode( $this->get_page_title() ),
-			'utmhid' => $this->get_uid(),
-			'utmp' => $this->get_pageview(),
-			'utmac' => $this->get_account_id(),
-			'utmcc' => urlencode( $this->get_cookie_vars() )
-		);
-		return $this->remote( $this->beacon_url, $parameters );
-	}
-
-	public function create_event() {
-		$this->set_type();
-		$parameters = array(
-			'utmwv' => $this->get_version(),
-			'utmn' => $this->get_random_number(),
-			'utmhn' => $this->get_host_name(),
-			'utmt' => 'event',
-			'utme' => $this->get_event_string(),
-			'utmcs' => $this->get_charset(),
-			'utmul' => $this->get_lang(),
-			'utmdt' => urlencode( $this->get_page_title() ),
-			'utmhid' => $this->get_uid(),
-			'utmp' => $this->get_pageview(),
-			'utmac' => $this->get_account_id(),
-			'utmcc' => urlencode( $this->get_cookie_vars() )
-
-		);
-		return $this->remote( $this->beacon_url, $parameters );
-	}
-
-	private function remote( $url, $parameters = array() ) {
-
-		if ( function_exists( 'add_query_arg' ) && function_exists( 'wp_remote_head' ) ) { // Check if this is being used with WordPress, if so use it's excellent HTTP class
-
-			$gif_url = add_query_arg( $parameters, $url );
-			$response = wp_remote_head( $gif_url );
-			return $response;
-
-		} else {
-
-			$gif_url = $url . '?' . http_build_query( $parameters );
-			// is cURL installed yet?
-			if ( !function_exists( 'curl_init' ) ) {
-				die( 'Sorry cURL is not installed!' );
-			}
-			$ch = curl_init();
-			curl_setopt( $ch, CURLOPT_URL, $gif_url );
-
-			if ( $_SERVER['HTTP_REFERER'] ) curl_setopt( $ch, CURLOPT_REFERER, $_SERVER['HTTP_REFERER'] );
-			curl_setopt( $ch, CURLOPT_USERAGENT, "MozillaXYZ/1.0" );
-			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $ch, CURLOPT_TIMEOUT, 20 );
+}
 
 
-			$output = curl_exec( $ch );
 
-			// Close the cURL resource, and free system resources
-			curl_close( $ch );
-
-			return $output;
-
-		}
-
-	}
+/**
+ * Instantiate new class and push data
+ * @param  string $UA     The UA string of the GA account to use
+ * @param  string $domain domain
+ * @param  string $page   the page to set the pageview
+ * @return null         
+ */
+function ssga_track( $UA = null, $domain = null, $page = null ) {
+	$ssga = new ssga( $UA, $domain );
+	$ssga->set_page( $page );
+	$ssga->send();
+	$ssga->reset();
+	return $ssga;
 }
