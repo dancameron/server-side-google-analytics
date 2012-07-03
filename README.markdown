@@ -10,11 +10,18 @@ Usage
 
 Google Analytics Server Side can be used simply in the following manner:
 
+
+Easy:
+
+	ssga_track( 'UA-YOUR_NUMBER', 'yoursite.com', '/page.php' )
+
+Advanced:
+
 	include 'lib/ssga.class.php';
 	$ssga = new ssga( 'UA-YOUR_NUMBER', 'yoursite.com' );
 
 	//Set a pageview
-	$ssga->set_page( /page.php' );
+	$ssga->set_page( '/page.php' );
 	$ssga->set_page_title( 'Page Title' );
 
 	// Send
