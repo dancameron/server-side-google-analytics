@@ -16,7 +16,8 @@ Easy:
 	ssga_track( 'UA-YOUR_NUMBER', 'yoursite.com', '/page.php' )
 
 Advanced:
-
+	
+	//create new ssga object
 	include 'lib/ssga.class.php';
 	$ssga = new ssga( 'UA-YOUR_NUMBER', 'yoursite.com' );
 
@@ -29,5 +30,7 @@ Advanced:
 	$ssga->reset();
 
 Set an event (based on http://code.google.com/apis/analytics/docs/tracking/eventTrackerGuide.html) 
-
+	
+	//$ssga as created above
 	$ssga->set_event( 'Feed', 'Categories', $var, $var );
+	$ssga->send();
