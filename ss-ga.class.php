@@ -279,7 +279,7 @@ class ssga {
 		else
 			$event_string .= ')';
 
-		if ( $this->event_value )
+		if ( $value )
 			$event_string .= '(' . $event_value . ')';
 
 		$this->data['utmt'] = 'event';
