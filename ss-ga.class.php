@@ -146,6 +146,7 @@ class ssga {
 			'utmttx' => null,
 			'utmul' => '-',
 			'utmwv' => '5.2.5' );
+		$this->tracking = null;
 		return $this->data = $data;
 	}
 
