@@ -18,7 +18,7 @@ Easy:
 Advanced:
 	
 	//create new ssga object
-	include 'lib/ssga.class.php';
+	include 'lib/ss-ga.class.php';
 	$ssga = new ssga( 'UA-YOUR_NUMBER', 'yoursite.com' );
 
 	//Set a pageview
@@ -32,5 +32,5 @@ Advanced:
 Set an event (based on http://code.google.com/apis/analytics/docs/tracking/eventTrackerGuide.html) 
 	
 	//$ssga as created above
-	$ssga->set_event( 'Feed', 'Categories', $var, $var );
+	$ssga->set_event( 'Feed', 'Categories', $label, $value );
 	$ssga->send();

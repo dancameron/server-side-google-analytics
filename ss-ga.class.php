@@ -16,6 +16,7 @@ class ssga {
 		'utmdt' => '-',
 		'utmfl' => '-',
 		'utme' => null,
+		'utmni' => null,
 		'utmhn' => null,
 		'utmipc' => null,
 		'utmipn' => null,
@@ -121,6 +122,7 @@ class ssga {
 			'utmdt' => '-',
 			'utmfl' => '-',
 			'utme' => null,
+			'utmni' => null,
 			'utmipc' => null,
 			'utmipn' => null,
 			'utmipr' => null,
@@ -144,6 +146,7 @@ class ssga {
 			'utmttx' => null,
 			'utmul' => '-',
 			'utmwv' => '5.2.5' );
+		$this->tracking = null;
 		return $this->data = $data;
 	}
 
@@ -265,7 +268,7 @@ class ssga {
 	// Events //
  	////////////
 
-	public function set_event( $category, $action, $label = '', $value = '' ) {
+	public function set_event( $category, $action, $label = '', $value = '', $opt_noninteraction = false) {
 		$event_category = (string) $category;
 		$event_action = (string) $action;
 		if ( $label ) $event_label = (string) $label;
@@ -279,8 +282,12 @@ class ssga {
 		else
 			$event_string .= ')';
 
-		if ( $value )
+		if ( $event_value )
 			$event_string .= '(' . $event_value . ')';
+			
+		if ($opt_noninteraction) {
+                        $this->data['utmni'] = '1';
+                }
 
 		$this->data['utmt'] = 'event';
 		return $this->data['utme'] = $event_string;
