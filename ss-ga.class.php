@@ -331,6 +331,60 @@ class ssga {
 	public function set_taxes( $var = null ) {
 		return $this->data['utmttx'] = $var;
 	}
+	
+	////////////////////////
+	// Ecommerce Tracking //
+	////////////////////////
+	
+	private static $requests_for_this_session = 0;
+	
+	/**
+	 * Create and send a transaction object
+	 * 
+	 * Parameter order from https://developers.google.com/analytics/devguides/collection/gajs/gaTrackingEcommerce
+	 */
+	public function send_transaction($transaction_id, $affiliation, $total, $tax, $shipping, $city, $region, $country) {
+		$this->data['utmvw'] = '5.4.3';
+		$this->data['utms'] = ++self::$requests_for_this_session;
+		$this->data['utmt'] = 'tran';
+		$this->data['utmtid'] = $transaction_id;
+		$this->data['utmtst'] = $affiliation;
+		$this->data['utmtto'] = $total;
+		$this->data['utmttx'] = $tax;
+		$this->data['utmtsp'] = $shipping;
+		$this->data['utmtci'] = $city;
+		$this->data['utmtrg'] = $region;
+		$this->data['utmtco'] = $country;
+		$this->data['utmcs'] = 'UTF-8';
+		
+		$this->send();
+		$this->reset();
+		
+		return $this;
+	}
+	
+	/**
+	 * Add item to the created $transaction_id
+	 * 
+	 * Parameter order from https://developers.google.com/analytics/devguides/collection/gajs/gaTrackingEcommerce
+	 */
+	public function send_item($transaction_id, $sku, $product_name, $variation, $unit_price, $quantity) {
+		$this->data['utmvw'] = '5.4.3';
+		$this->data['utms'] = ++self::$requests_for_this_session;
+		$this->data['utmt'] = 'item';
+		$this->data['utmtid'] = $transaction_id;
+		$this->data['utmipc'] = $sku;
+		$this->data['utmipn'] = $product_name;
+		$this->data['utmiva'] = $variation;
+		$this->data['utmipr'] = $unit_price;
+		$this->data['utmiqt'] = $quantity;
+		$this->data['utmcs'] = 'UTF-8';
+		
+		$this->send();
+		$this->reset();
+		
+		return $this;
+	}
 }
 
 
