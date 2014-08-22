@@ -173,9 +173,9 @@ class ssga {
 	////////////
 
 
- 	/////////////
+	/////////////
 	// Product //
- 	/////////////
+	/////////////
 
 	public function set_product_code( $var = null ) {
 		return $this->data['utmipc'] = $var;
@@ -197,9 +197,9 @@ class ssga {
 		return $this->data['utmiva'] = $var;
 	}
 
- 	//////////
+	//////////
 	// Misc //
- 	//////////
+	//////////
 
 
 	public function set_java( $var = null ) {
@@ -264,39 +264,38 @@ class ssga {
 		return $this->data['utmr'] = $var;
 	}
 
- 	////////////
+	////////////
 	// Events //
- 	////////////
+	////////////
 
 	public function set_event( $category, $action, $label = '', $value = '', $opt_noninteraction = false) {
 		$event_category = (string) $category;
 		$event_action = (string) $action;
-		if ( $label ) $event_label = (string) $label;
-		if ( $value ) $event_value = (int) intval( $value );
-		
-		$event_string = '';
-		$event_string .= '5(' . $event_category . '*' . $event_action;
 
-		if ( $label )
-			$event_string .= '*' . $event_label . ')';
-		else
+		$event_string = '5(' . $event_category . '*' . $event_action;
+
+		if (!empty($label)) {
+			$event_string .= '*' . ((string) $label) . ')';
+		} else {
 			$event_string .= ')';
+		}
 
-		if ( $event_value )
-			$event_string .= '(' . $event_value . ')';
-			
+		if (!empty($value)) {
+			$event_string .= '(' . ((int) intval($value)) . ')';
+		}
+
 		if ($opt_noninteraction) {
-                        $this->data['utmni'] = '1';
-                }
+			$this->data['utmni'] = '1';
+		}
 
 		$this->data['utmt'] = 'event';
 		return $this->data['utme'] = $event_string;
 	}
 
- 	///////////
+	///////////
 	// Order //
- 	///////////
- 	
+	///////////
+
 	public function set_order_id( $var = null ) {
 		return $this->data['utmtid'] = $var;
 	}
