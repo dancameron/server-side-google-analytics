@@ -5,7 +5,7 @@
  */
 
 class ssga {
-	const GA_URL = 'http://www.google-analytics.com/__utm.gif';
+	const GA_URL = 'https://stats.g.doubleclick.net/__utm.gif'; //@nczz update v5.6.4dc
 
 	private $data = array(
 		'utmac' => null,
@@ -28,6 +28,7 @@ class ssga {
 		'utmp' => null,
 		'utmr' => null,
 		'utmsc' => '-',
+		'utmvp' => '-',
 		'utmsr' => '-',
 		'utmt' => null,
 		'utmtci' => null,
@@ -39,7 +40,9 @@ class ssga {
 		'utmtto' => null,
 		'utmttx' => null,
 		'utmul' => '-',
-		'utmwv' => '5.2.5' );
+		'utmhid' => null,
+		'utmht' => null,
+		'utmwv' => '5.6.4dc' );
 
 	private $tracking;
 
@@ -51,6 +54,8 @@ class ssga {
 		$this->data['utmn'] = rand( 1000000000, 9999999999 );
 		$this->data['utmr'] = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
 		$this->data['utmcc'] = $this->create_cookie();
+		$this->data['utmhid'] = rand( 1000000000, 9999999999 );
+		$this->data['utmht'] = time() * 1000;
 	}
 
 	/**
@@ -76,8 +81,7 @@ class ssga {
 	public function send() {
 		if ( !isset( $this->tracking ) )
 			$this->create_gif();
-		
-		// prp($this->create_gif());
+
 		return $this->remote_call();
 	}
 
@@ -90,7 +94,6 @@ class ssga {
 		if ( function_exists( 'wp_remote_head' ) ) { // Check if this is being used with WordPress, if so use it's excellent HTTP class
 
 			$response = wp_remote_head( $this->tracking );
-			// prp($response);
 			return $response;
 
 		} elseif ( function_exists( 'curl_init' ) ) {
@@ -98,6 +101,7 @@ class ssga {
 			curl_setopt( $ch, CURLOPT_URL, $this->tracking );
 			curl_setopt( $ch, CURLOPT_HEADER, false );
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false); //@nczz Fixed HTTPS GET method
 			curl_setopt( $ch, CURLOPT_TIMEOUT, 10 );
 			curl_exec( $ch );
 			curl_close( $ch );
@@ -144,8 +148,9 @@ class ssga {
 			'utmtst' => null,
 			'utmtto' => null,
 			'utmttx' => null,
-			'utmul' => '-',
-			'utmwv' => '5.2.5' );
+			'utmul' => 'php',
+			'utmht' => time() * 1000,
+			'utmwv' => '5.6.4dc' );
 		$this->tracking = null;
 		return $this->data = $data;
 	}
@@ -343,7 +348,7 @@ class ssga {
 	 * Parameter order from https://developers.google.com/analytics/devguides/collection/gajs/gaTrackingEcommerce
 	 */
 	public function send_transaction($transaction_id, $affiliation, $total, $tax, $shipping, $city, $region, $country) {
-		$this->data['utmvw'] = '5.4.3';
+		$this->data['utmvw'] = '5.6.4dc';
 		$this->data['utms'] = ++self::$requests_for_this_session;
 		$this->data['utmt'] = 'tran';
 		$this->data['utmtid'] = $transaction_id;
@@ -368,7 +373,7 @@ class ssga {
 	 * Parameter order from https://developers.google.com/analytics/devguides/collection/gajs/gaTrackingEcommerce
 	 */
 	public function send_item($transaction_id, $sku, $product_name, $variation, $unit_price, $quantity) {
-		$this->data['utmvw'] = '5.4.3';
+		$this->data['utmvw'] = '5.6.4dc';
 		$this->data['utms'] = ++self::$requests_for_this_session;
 		$this->data['utmt'] = 'item';
 		$this->data['utmtid'] = $transaction_id;
